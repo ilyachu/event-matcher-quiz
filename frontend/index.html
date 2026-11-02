@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VibeMatch — Мероприятия под твой ритм</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1A1D24 0%, #0B0D11 100%);
+      color: #F3F4F6;
+      min-height: 100vh;
+    }
+    .tinder-card {
+      background: rgba(22, 25, 32, 0.88);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .badge-pill {
+      transition: all 0.2s ease;
+    }
+    .badge-pill:active {
+      transform: scale(0.96);
+    }
+    .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-[#FF5A36] selection:text-white">
+
+<div x-data="tinderQuizApp()" class="w-full max-w-md mx-auto my-auto">
+  
+  <!-- HEADER / BRANDING -->
+  <div class="flex items-center justify-between mb-5 px-2">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#FF5A36] to-[#FF8C68] flex items-center justify-center shadow-lg shadow-[#FF5A36]/30">
+        <span class="text-white font-black text-sm tracking-tighter">VM</span>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold tracking-tight text-white">VibeMatch</h1>
+        <p class="text-[11px] text-gray-400">AI Event Curator</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-[11px] font-medium text-gray-300">DeepSeek 4.1</span>
+    </div>
+  </div>
+
+  <!-- STORIES-STYLE PROGRESS BAR -->
+  <div class="flex gap-1.5 mb-5 px-1" x-show="step <= 6">
+    <template x-for="i in 6" :key="i">
+      <div class="h-1.5 flex-1 rounded-full transition-all duration-300"
+           :class="step >= i ? 'bg-[#FF5A36]' : 'bg-white/10'"></div>
+    </template>
+  </div>
+
+  <!-- MAIN CARD CONTAINER -->
+  <div class="tinder-card rounded-3xl p-6 sm:p-8 relative min-h-[500px] flex flex-col justify-between overflow-hidden">
+    
+    <!-- CARD 1: ИМЯ -->
+    <div x-show="step === 1" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+      <div class="space-y-1.5">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 1 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Как к тебе обращаться?</h2>
+        <p class="text-xs text-gray-400 leading-relaxed">Нейросеть составит персонализированное приветствие и персональный сценарий знакомств.</p>
+      </div>
+      <div class="pt-2">
+        <input type="text" x-model="form.name" @keydown.enter="if(canProceed()) nextStep()" placeholder="Например, Илья или Анна" 
+               class="w-full bg-[#0D0F12] border border-white/15 rounded-2xl px-5 py-4 text-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#FF5A36] focus:ring-1 focus:ring-[#FF5A36] transition-all">
+      </div>
+      <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-xs text-gray-400 flex items-start gap-3">
+        <span class="text-[#FF5A36] text-base">⚡</span>
+        <span>Мы анализируем события по 6 критериям, чтобы подобрать только те встречи, где соберутся близкие по духу люди.</span>
+      </div>
+    </div>
+
+    <!-- CARD 2: ВОЗРАСТ -->
+    <div x-show="step === 2" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+      <div class="space-y-1.5">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 2 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Твоя возрастная категория</h2>
+        <p class="text-xs text-gray-400">Чтобы подобрать комьюнити с близким жизненным контекстом.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <template x-for="ageGroup in ['18–24', '25–30', '31–40', '40+']">
+          <button type="button" @click="form.age = ageGroup"
+                  :class="form.age === ageGroup ? 'border-[#FF5A36] bg-[#FF5A36]/15 text-white font-bold ring-1 ring-[#FF5A36]' : 'border-white/10 bg-[#0D0F12] text-gray-300 hover:border-white/20'"
+                  class="badge-pill border rounded-2xl py-4 text-center text-base transition-all tap-highlight-none"
+                  x-text="ageGroup"></button>
+        </template>
+      </div>
+    </div>
+
+    <!-- CARD 3: ГОРОД -->
+    <div x-show="step === 3" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
+      <div class="space-y-1.5">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 3 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">В каком городе ищешь события?</h2>
+        <p class="text-xs text-gray-400">Выбери из списка или укажи свой город.</p>
+      </div>
+      <div class="flex flex-wrap gap-2 pt-1">
+        <template x-for="c in ['Москва', 'Санкт-Петербург', 'Казань', 'Екатеринбург', 'Онлайн']">
+          <button type="button" @click="form.city = c"
+                  :class="form.city === c ? 'border-[#FF5A36] bg-[#FF5A36]/20 text-white font-semibold ring-1 ring-[#FF5A36]' : 'border-white/10 bg-[#0D0F12] text-gray-300 hover:border-white/20'"
+                  class="badge-pill border rounded-xl px-4 py-2.5 text-xs sm:text-sm transition-all"
+                  x-text="c"></button>
+        </template>
+      </div>
+      <input type="text" x-model="form.city" placeholder="Или введи свой город..."
+             class="w-full bg-[#0D0F12] border border-white/15 rounded-2xl px-5 py-3.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#FF5A36] transition-all">
+    </div>
+
+    <!-- CARD 4: УВЛЕЧЕНИЯ -->
+    <div x-show="step === 4" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+      <div class="space-y-1">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 4 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Твои главные интересы</h2>
+        <p class="text-xs text-gray-400">Выбери от 1 до 5 тем, которые зажигают</p>
+      </div>
+      <div class="flex flex-wrap gap-2 max-h-[240px] overflow-y-auto pr-1 py-1">
+        <template x-for="tag in ['IT и Стартапы', 'Маркетинг и AI', 'Спорт и аутдор', 'Искусство и кино', 'Бизнес & Нетворкинг', 'Психология', 'Музыка & Концерты', 'Настольные игры', 'Книжные клубы']">
+          <button type="button" @click="toggleItem(form.hobbies, tag)"
+                  :class="form.hobbies.includes(tag) ? 'border-[#FF5A36] bg-[#FF5A36]/20 text-[#FF8C68] font-semibold ring-1 ring-[#FF5A36]' : 'border-white/10 bg-[#0D0F12] text-gray-300 hover:border-white/20'"
+                  class="badge-pill border rounded-xl px-3.5 py-2 text-xs sm:text-sm transition-all"
+                  x-text="tag"></button>
+        </template>
+      </div>
+    </div>
+
+    <!-- CARD 5: ФОРМАТ СОБЫТИЙ -->
+    <div x-show="step === 5" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+      <div class="space-y-1">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 5 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Какой формат ближе?</h2>
+        <p class="text-xs text-gray-400">Где чувствуешь себя комфортнее всего?</p>
+      </div>
+      <div class="space-y-2 pt-1">
+        <template x-for="fmt in ['Неформальные митапы и квартирники', 'Мастер-классы и практические воркшопы', 'Вечеринки, рейвы и фестивали', 'Камерные бизнес-завтраки и нетворкинг', 'Спортивные выезды / походы выходного дня']">
+          <button type="button" @click="toggleItem(form.eventTypes, fmt)"
+                  :class="form.eventTypes.includes(fmt) ? 'border-[#FF5A36] bg-[#FF5A36]/15 text-white font-medium ring-1 ring-[#FF5A36]' : 'border-white/10 bg-[#0D0F12] text-gray-300 hover:border-white/20'"
+                  class="badge-pill w-full border rounded-2xl px-4 py-3 text-left text-xs sm:text-sm transition-all flex items-center justify-between">
+            <span x-text="fmt"></span>
+            <span x-show="form.eventTypes.includes(fmt)" class="text-[#FF5A36] font-bold text-sm">✓</span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- CARD 6: ГОТОВНОСТЬ ВСТРЕТИТЬСЯ -->
+    <div x-show="step === 6" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
+      <div class="space-y-1">
+        <span class="text-xs uppercase font-bold tracking-wider text-[#FF5A36]">Шаг 6 из 6</span>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Когда готов(а) выбраться?</h2>
+        <p class="text-xs text-gray-400">Подберем события под твою скорость.</p>
+      </div>
+      <div class="space-y-2.5 pt-1">
+        <template x-for="readiness in ['Хоть сегодня вечером 🔥', 'На этих выходных 🗓️', 'В течение недели ☕', 'Пока присматриваюсь 👀']">
+          <button type="button" @click="form.readyToMeet = readiness"
+                  :class="form.readyToMeet === readiness ? 'border-[#FF5A36] bg-[#FF5A36]/20 text-white font-bold ring-1 ring-[#FF5A36]' : 'border-white/10 bg-[#0D0F12] text-gray-300 hover:border-white/20'"
+                  class="badge-pill w-full border rounded-2xl py-3.5 px-4 text-left text-sm transition-all"
+                  x-text="readiness"></button>
+        </template>
+      </div>
+    </div>
+
+    <!-- BOTTOM ACTIONS BAR (DURING QUIZ) -->
+    <div x-show="step <= 6" class="pt-5 border-t border-white/5 flex items-center justify-between gap-3 mt-6">
+      <button type="button" @click="step--" x-show="step > 1"
+              class="px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold text-gray-400 hover:text-white transition-colors">
+        ← Назад
+      </button>
+      <div x-show="step === 1"></div>
+
+      <button type="button" @click="nextStep()"
+              :disabled="!canProceed() || loading"
+              :class="canProceed() && !loading ? 'bg-[#FF5A36] hover:bg-[#ff451d] text-white' : 'bg-white/10 text-gray-500 cursor-not-allowed'"
+              class="px-7 py-3.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-lg shadow-[#FF5A36]/25 active:scale-98">
+        <span x-text="step === 6 ? (loading ? 'Анализируем базу...' : 'Сгенерировать подборку') : 'Далее'"></span>
+        <span x-show="!loading">→</span>
+      </button>
+    </div>
+
+    <!-- CARD 7: THANK YOU PAGE / CJM CONVERSION GATE -->
+    <div x-show="step === 7" x-transition:enter="transition ease-out duration-400 transform" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="space-y-6 text-center">
+      
+      <div class="w-16 h-16 bg-gradient-to-tr from-[#FF5A36] to-amber-500 text-white rounded-3xl flex items-center justify-center mx-auto text-2xl font-black shadow-xl shadow-[#FF5A36]/30">
+        ✓
+      </div>
+
+      <div class="space-y-2">
+        <h2 class="text-2xl font-black tracking-tight text-white">Подборка сформирована!</h2>
+        <p class="text-xs text-gray-300 leading-relaxed max-w-xs mx-auto">
+          <span class="font-semibold text-white" x-text="form.name"></span>, DeepSeek AI сопоставил твою анкету с базой мероприятий в г. <span class="font-semibold text-white" x-text="form.city"></span>.
+        </p>
+      </div>
+
+      <!-- User Profile Snapshot -->
+      <div class="bg-[#0D0F12] border border-white/10 rounded-2xl p-4 text-xs text-left space-y-2">
+        <div class="flex justify-between items-center text-gray-400">
+          <span>Профиль:</span>
+          <span class="font-semibold text-white" x-text="form.name + ' (' + form.age + ')'"></span>
+        </div>
+        <div class="flex justify-between items-center text-gray-400">
+          <span>Интересы:</span>
+          <span class="font-medium text-[#FF8C68] truncate max-w-[200px]" x-text="form.hobbies.join(', ')"></span>
+        </div>
+        <div class="flex justify-between items-center text-gray-400 border-t border-white/5 pt-2">
+          <span>ID заявки:</span>
+          <span class="font-mono text-gray-500" x-text="userId.substring(0, 13) + '...'"></span>
+        </div>
+      </div>
+
+      <!-- CTA BUTTONS: TELEGRAM & MAX -->
+      <div class="space-y-3 pt-1">
+        <p class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Забери подборку в мессенджере:</p>
+        
+        <!-- Telegram Button with Deep Link -->
+        <a :href="'https://t.me/' + tgBotUsername + '?start=quiz_' + userId" target="_blank"
+           class="w-full bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-lg shadow-[#2AABEE]/25">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .39z"/></svg>
+          <span>Забрать подборку в Telegram</span>
+        </a>
+
+        <!-- MAX Messenger Button -->
+        <a :href="'https://max.ru/connect?uid=' + userId + '&utm_source=quiz'" target="_blank"
+           class="w-full bg-[#1F232B] hover:bg-[#282D37] border border-white/10 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-3 transition-transform active:scale-95">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          <span>Забрать подборку в MAX</span>
+        </a>
+      </div>
+
+      <!-- IN-BROWSER DEMO / TESTING ACCORDION -->
+      <div class="border-t border-white/10 pt-4 text-left">
+        <button type="button" @click="loadDemoRecommendation()"
+                class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-between transition-colors">
+          <span>🔮 Предпросмотр ответа DeepSeek (Тест CJM)</span>
+          <span x-text="demoLoading ? '⏳ Генерация...' : (showDemo ? '▲ Свернуть' : '▼ Раскрыть')"></span>
+        </button>
+
+        <div x-show="showDemo" class="mt-3 p-4 bg-[#090B0E] border border-white/10 rounded-2xl text-xs text-gray-300 max-h-[300px] overflow-y-auto whitespace-pre-wrap leading-relaxed">
+          <p x-text="demoText"></p>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-gray-500">
+        *Перед отправкой бот предложит подписаться на официальный канал сообщества.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="text-center mt-5 text-[11px] text-gray-500">
+    VibeMatch • Powered by DeepSeek AI & Open Source Stack
+  </div>
+
+</div>
+
+<script>
+function tinderQuizApp() {
+  return {
+    step: 1,
+    loading: false,
+    userId: '',
+    tgBotUsername: window.TG_BOT_USERNAME || 'YOUR_BOT_USERNAME',
+    form: {
+      name: '',
+      age: '',
+      city: '',
+      hobbies: [],
+      eventTypes: [],
+      readyToMeet: ''
+    },
+    demoLoading: false,
+    showDemo: false,
+    demoText: '',
+
+    toggleItem(arr, item) {
+      const idx = arr.indexOf(item);
+      if (idx > -1) arr.splice(idx, 1);
+      else arr.push(item);
+    },
+
+    canProceed() {
+      if (this.step === 1) return this.form.name.trim().length >= 2;
+      if (this.step === 2) return this.form.age !== '';
+      if (this.step === 3) return this.form.city.trim().length >= 2;
+      if (this.step === 4) return this.form.hobbies.length > 0;
+      if (this.step === 5) return this.form.eventTypes.length > 0;
+      if (this.step === 6) return this.form.readyToMeet !== '';
+      return true;
+    },
+
+    async nextStep() {
+      if (this.step < 6) {
+        this.step++;
+        return;
+      }
+      this.loading = true;
+      try {
+        const res = await fetch('/api/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.form)
+        });
+        const data = await res.json();
+        this.userId = data.user_id;
+        this.step = 7;
+      } catch (err) {
+        alert('Ошибка связи с сервером. Попробуйте еще раз.');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async loadDemoRecommendation() {
+      if (this.demoText) {
+        this.showDemo = !this.showDemo;
+        return;
+      }
+      this.demoLoading = true;
+      this.showDemo = true;
+      try {
+        const res = await fetch('/api/recommendations/' + this.userId);
+        const data = await res.json();
+        this.demoText = data.recommendation;
+      } catch (err) {
+        this.demoText = 'Ошибка получения рекомендации: ' + err.message;
+      } finally {
+        this.demoLoading = false;
+      }
+    }
+  }
+}
+</script>
+</body>
+</html>
